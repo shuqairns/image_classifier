@@ -5,13 +5,6 @@ import torchvision
 from torchvision import datasets, models, transforms
 from collections import OrderedDict
 
-def test1():
-    t = testtwo()
-    return t
-
-def testtwo():
-    return "hi"
-
 def initialize_model(model_name, num_classes, feature_extract, hidden_units, use_pretrained=True):
     # Initialize these variables which will be set in this if statement. Each of these
     #   variables is model specific.
@@ -23,7 +16,7 @@ def initialize_model(model_name, num_classes, feature_extract, hidden_units, use
         model_ft = models.resnet18(pretrained=use_pretrained)
         set_parameter_requires_grad(model_ft, feature_extract)
         num_ftrs = model_ft.fc.in_features
-        model_ft.fc = nn.Linear(num_ftrs, num_classes)
+        model_ft.fc = define_classifier(num_ftrs, num_classes, hidden_units)
 
     elif model_name == "alexnet":
         """ Alexnet
@@ -31,7 +24,8 @@ def initialize_model(model_name, num_classes, feature_extract, hidden_units, use
         model_ft = models.alexnet(pretrained=use_pretrained)
         set_parameter_requires_grad(model_ft, feature_extract)
         num_ftrs = model_ft.classifier[6].in_features
-        model_ft.classifier[6] = nn.Linear(num_ftrs,num_classes)
+        model_ft.classifier[6] = define_classifier(num_ftrs, num_classes, hidden_units)
+#         nn.Linear(num_ftrs,num_classes)
 
     elif model_name == "vgg":
         """ VGG11_bn
@@ -39,7 +33,7 @@ def initialize_model(model_name, num_classes, feature_extract, hidden_units, use
         model_ft = models.vgg11_bn(pretrained=use_pretrained)
         set_parameter_requires_grad(model_ft, feature_extract)
         num_ftrs = model_ft.classifier[6].in_features
-        model_ft.classifier[6] = nn.Linear(num_ftrs,num_classes)
+        model_ft.classifier[6] = define_classifier(num_ftrs, num_classes, hidden_units)
 
     elif model_name == "squeezenet":
         """ Squeezenet
@@ -56,19 +50,6 @@ def initialize_model(model_name, num_classes, feature_extract, hidden_units, use
         set_parameter_requires_grad(model_ft, feature_extract)
         num_ftrs = model_ft.classifier.in_features
         model_ft.classifier = define_classifier(num_ftrs, num_classes, hidden_units)
-
-    elif model_name == "inception":
-        """ Inception v3
-        Be careful, expects (299,299) sized images and has auxiliary output
-        """
-        model_ft = models.inception_v3(pretrained=use_pretrained)
-        set_parameter_requires_grad(model_ft, feature_extract)
-        # Handle the auxilary net
-        num_ftrs = model_ft.AuxLogits.fc.in_features
-        model_ft.AuxLogits.fc = nn.Linear(num_ftrs, num_classes)
-        # Handle the primary net
-        num_ftrs = model_ft.fc.in_features
-        model_ft.fc = nn.Linear(num_ftrs,num_classes)
 
     else:
         print("Invalid model name, exiting...")
