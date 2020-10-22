@@ -12,7 +12,9 @@ cat_to_name = []
 def predict(image_path, checkpointPath, topk, category_names_file, gpu):
     
     device = torch.device("cuda" if gpu and torch.cuda.is_available() else "cpu")
-    print(device)
+    print(f"device selected: {device}")
+    if gpu and not torch.cuda.is_available():
+        print("GPU not available, CPU selected")
     
     model = load_checkpoint(checkpointPath).to(device).eval()
         
@@ -31,7 +33,7 @@ def predict(image_path, checkpointPath, topk, category_names_file, gpu):
     for i in range(topk):
         categ.append(cat_to_name[class_reverse[top_class[0][i]]])
         
-    return categ, top_p
+    return categ, top_p[0]
 
 def get_cat_names(path):
     with open(path, 'r') as f:
@@ -78,5 +80,9 @@ if __name__ == "__main__":
     _args = parser.parse_args()
 
     classes, probs = predict(_args.input, _args.checkpoint, int(_args.top_k), _args.category_names, _args.gpu)
+    print(f"\nFlower name is {classes[0]} --- Probabilitiy: {probs[0] * 100 :.0f}%")
+    print("-----------------------------------\n")
+    print(f"top_k {_args.top_k}: \n")
+
     print(classes)
     print(probs)
